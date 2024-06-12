@@ -1,0 +1,2223 @@
+openapi: 3.0.3
+info:
+  title: Online Support Ticket System - OpenAPI 3.0
+  description: |-
+    <h3>Software Engineering Project: Milestone 4</h3>
+    <h3>Task: API Endpoints Documentation</h3>
+    <h3>Course: BSCSS3001 - Software Engineering</h3>
+    <h3>Group: 5</h3>
+    <h3>Members:
+    <ul>
+    <li>PARAG SARKAR (21F1005547)</li>
+    <li>NITISH MISHRA (21F1007033)</li>
+    <li>RAJ ROHIT YADAV (21F1005377)</li>
+    <li>SRUSHTI VIJAY GURAV (21F1001211)</li>
+    <li>S NITHISH KUMAR (21F1006725)</li>
+    <li>SNEHIL NAIR (21F2000602)</li>
+    <li>SHAILESH KUMAR (21F1004597)</li>
+    </ul>
+    </h3>
+    <h3>Program: BSc in Programming and Data Science</h3>
+    <h3>Institute: Indian Institute of Technology, Madras</h3>
+    </br>
+  
+    This is an API documentation for integrating discourse on a previously created ticket system.
+    Most of the previous endpoints stays same. In this doc we are only including the updated api endpoints, which uses discourse APIs in the our backend.
+    
+    _If you're looking for the previous system's API documentation, please check the following link._
+    
+    Links:
+    - [The source API for previous system](https://drive.google.com/file/d/1xMLb4ajTUo3Wi_o64C6ReM7fSrAgY1P-/view?usp=drive_link)
+    - [The source api of Discourse](https://docs.discourse.org/)
+    
+    
+  termsOfService: http://team-5/swagger.io/terms/
+  contact:
+    email: team-5@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:5000/api/v1
+  - url: https://chat.googleapis.com
+tags:
+  - name: Modified APIs
+    description: Modification of previous system's APIs. As we are already passing user_id as request header, there is no need to pass it again as parameter for centain endpoints. There are also changes in the backend as we are integrating discourse api. We are preprocessing the discourse api's response in backend to maintain previous APIs compatibility
+    
+  # - name: store
+  #   description: Access to Petstore orders
+  
+paths:
+  /v1/spaces:
+
+    post:
+      servers:
+        - url: https://chat.googleapis.com
+      tags:
+        - External API
+      summary: Notify support staffs on google space. It uses chat.googleapis.com
+      operationId: postGspace
+      parameters:
+        - name: key
+          in: query
+          schema:
+            type: string
+        - name: token
+          in: query
+          schema:
+            type: string
+  
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+        "500":
+          description: Internel Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Failure
+  
+  /api/v1/ticket/reply:
+    post:
+      tags:
+        - Ticket
+      summary: Admin And Support staff can reply to a ticket. if its public it will post that reply to discourse also
+      operationId: postReply
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_id": {
+                    "type": "string",
+                    "example": 1234,
+                  },
+                  "solution": {
+                    "type": "string",
+                    "example": this is a solution,
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "example" : [{
+                        "user_id": "string",
+                        "attachment_loc": "string",
+                    }]
+                  }
+                }
+              }
+            }
+          }
+        }
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+        "500":
+          description: Internel Server Error
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Failure
+
+  /api/v1/ticket/discourse/post:
+    post:
+      tags:
+        - Ticket
+      summary: Post all tickets on discourse. The request body excepts a list of ticket ids.
+      operationId: postDiscourse
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_ids": {
+                    "type": "array",
+                    "example": [12345,23456],
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to like a topic created by some other peers"
+                  }
+                }
+              }
+            }
+          }
+        }
+      
+      responses:
+        "200":
+          description: Successfully Posted all tickets On DIscourse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: One or more ticket ids are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+                
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+
+
+  /api/v1/ticket/priority/{priority}:
+    get:
+      tags:
+        - Ticket
+      summary: Lists all tickets which has priority as path paramemeter
+      operationId: getPriorityTickets
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: priority
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      
+      responses:
+        "200":
+          description: Lists All tickets with specific priority.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+  
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid priority value. Please provide a valid priority."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error occurred. Please try again later."
+
+  /api/v1/ticket/popular:
+    get:
+      tags:
+        - Ticket
+      summary: Gets all the popular tickets raised on system and discourse
+      operationId: getPopular
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      
+      responses:
+        "200":
+          description: Gets all popular tickets on system as well discourse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+                      
+      
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bad request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error occurred. Please try again later."
+
+  /api/v1/ticket/change/privacy:
+    put:
+      tags:
+        - Ticket
+      summary: Change the privacy of a ticket
+      operationId: togglePrivacy
+      
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_id": {
+                    "type": "string",
+                    "example": 12345,
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to like a topic created by some other peers"
+                  },
+                  
+                  "private":{
+                    "type": "boolean",
+                    "example": true,
+                    "description": "changing private to false makes a ticket public thread on discourse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      
+      responses:
+        "200":
+          description: Successfully Voted The Ticket.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: "success"
+                    
+          
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please ensure correct parameters are provided."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+
+  /api/v1/ticket/vote:
+    post:
+      tags:
+        - Ticket
+      summary: Vote a Ticket. It is a Standalone api calls to decrease the work of uploading a whole ticket formData everytime we want to vote a ticket.
+      operationId: voteTicket
+
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_id": {
+                    "type": "string",
+                    "example": 12345,
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to like a topic created by some other peers"
+                  }
+                }
+              }
+            }
+          }
+        }
+      responses:
+        "200":
+          description: Successfully Voted The Ticket.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: object
+                    example:
+                      ticket_id: 12345
+                      votes: 100
+      
+  
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+  
+  /api/v1/ticket/solve:
+    post:
+      tags:
+        - Ticket
+      summary: Accepting A Reply As Solution Automatically Marks The Ticket Solved
+      operationId: resolveTicket
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "topic_id": {
+                    "type": "string",
+                    "example": 12345,
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to mark a topic solved by a ticket owner or support staff"
+                  }
+                }
+              }
+            }
+          }
+        }
+      responses:
+        "200":
+          description: Successfully Marked a Ticket resolved.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+  
+  
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+  
+  /api/v1/ticket/unsolve:
+    post:
+      tags:
+        - Ticket
+      summary: Unresolve a Ticket
+      operationId: unresolveTicket
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_id": {
+                    "type": "string",
+                    "example": 12345,
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to mark a topic solved by a ticket owner or support staff"
+                  }
+                }
+              }
+            }
+          }
+        }
+      responses:
+        "200":
+          description: Successfully Marked a Ticket Unresolved.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+                    
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Please provide valid credentials in the headers."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+
+
+  /api/v1/ticket/change/priority:
+    post:
+      tags:
+        - Ticket
+      summary: Change Priority Of A Ticket, It's high, low and midium. Can only be done by Support Staffs or Admin
+      operationId: priorityTicket
+      "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "ticket_id": {
+                    "type": "string",
+                    "example": 12345,
+                    "description": "The System takes a ticket_id as a request body to like a ticket. It uses discourse api in the backend to like a topic created by some other peers"
+                  },
+                  "priority":{
+                    "type": "string",
+                    "example": high,
+                    "description": "The system takes a rquest body of ticket_id and priority and update it's priority on both our system and discourse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      responses:
+        "200":
+          description: Successfully changed priority.
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+          
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Only Support Staffs or Admins are allowed to change ticket priorities."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+  
+  /api/v1/admin/users/{user_id}/activate:
+    put:
+      tags:
+        - Admin
+      summary: Validate a user by the user_id
+      operationId: validateUser
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully verified the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/new_response"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Only Support Staffs or Admins are allowed to change ticket priorities."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+                    
+
+  /api/v1/admin/users/{user_id}/deactivate:
+    put:
+      tags:
+        - Admin
+      summary: Deactivate a user by the user_id
+      operationId: deactivateUser
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully deactivated the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/new_response"
+                
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request. Please check your request parameters."
+      
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized. Only Support Staffs or Admins are allowed to change ticket priorities."
+      
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server. Please try again later."
+                  
+    
+
+  /api/v1/ticket/{ticket_id}:
+    get:
+      tags: 
+        - Modified APIs
+      summary: Retrieve a ticket.
+      operationId: getTicket
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: ticket_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved a ticket.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+        "400":
+          description: Client specified an invalid arguments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Given ticket id or user id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    put:
+      tags:
+      - Modified APIs
+      summary: Update ticket data
+      operationId: updateTicket
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      requestBody:
+        $ref: '#/components/requestBodies/TicketUpdateForm'
+      responses:
+        "200":
+          description: Ticket data updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid arguments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Ticket id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      tags:
+      - Modified APIs
+      summary: Delete a ticket.
+      operationId: deleteTicket
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      - name: ticket_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+
+      responses:
+        "200":
+          description: Ticket successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid user id or ticket id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Ticket id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/ticket/create:
+    post:
+      tags:
+      - Modified APIs
+      summary: Create a new Ticket
+      operationId: createTicket
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTicketForm'
+      responses:
+        "200":
+          description: New ticket successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid argument.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/ticket/all-tickets:
+    get:
+      tags:
+      - Modified APIs
+      summary: Retrieve all tickets for searching.
+      operationId: getAllTickets
+
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved all tickets as per query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+        "400":
+          description: Invalid query string received.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: A specified resource is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/ticket/all-tickets/user:
+    get:
+      tags:
+      - Modified APIs
+      summary: Retrieve all tickets for the user as per user role.
+      operationId: getAllUserTickets
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      responses:
+        "200":
+          description: Successfully retrieved all tickets as per query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+        "400":
+          description: Invalid query string received.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: A specified resource is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/student:
+    get:
+      tags:
+      - Modified APIs
+      summary: Get student details and metadata of activities.
+      operationId: getStudent
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      responses:
+        "200":
+          description: Successfully retrieved student details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_4'
+        "400":
+          description: Client specified an invalid user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Student id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    put:
+      tags:
+      - Modified APIs
+      summary: Update student profile data.
+      operationId: updateStudent
+
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+      responses:
+        "200":
+          description: Student details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Student id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/support:
+    get:
+      tags:
+      - Modified APIs
+      summary: Get support details and metadata of activities.
+      operationId: getSupport
+
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      responses:
+        "200":
+          description: Successfully retrieved support details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_5'
+        "400":
+          description: Client specified an invalid user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Support id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    put:
+      tags:
+      - Modified APIs
+      summary: Update support profile data.
+      operationId: updateSupport
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Support'
+      responses:
+        "200":
+          description: Support details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Support id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /api/v1/admin:
+    get:
+      tags:
+      - Modified APIs
+      summary: Get admin details and metadata of activities.
+      operationId: getAdmin
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      responses:
+        "200":
+          description: Successfully retrieved admin details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_6'
+        "400":
+          description: Client specified an invalid user id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Admin id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    put:
+      tags:
+      - Modified APIs
+      summary: Update admin profile data.
+      operationId: updateAdmin
+      parameters:
+      - name: Web-Token
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          
+      - name: User-Id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+      responses:
+        "200":
+          description: Admin details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Client specified an invalid argument.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "401":
+          description: Request not authenticated due to missing/invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "403":
+          description: Client does not have sufficient permission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Admin id is not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+components:
+  schemas:
+    Auth:
+      required:
+      - role
+      type: object
+      properties:
+        user_id:
+          type: string
+        role:
+          type: string
+          description: User Role
+          enum:
+          - Modified APIs
+          - Modified APIs
+          - Modified APIs
+        web_token:
+          type: string
+        is_verified:
+          type: boolean
+          default: false
+        is_logged:
+          type: boolean
+          default: false
+        token_created_on:
+          type: integer
+          description: Timestamp stored as integer
+          format: int64
+        token_expiry_on:
+          type: integer
+          format: int64
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+      xml:
+        name: Auth
+    Ticket:
+      required:
+      - created_by
+      - tag_1
+      - title
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          description: Ticket Priority
+          enum:
+          - low
+          - medium
+          - high
+        tag_1:
+          type: string
+        tag_2:
+          type: string
+        tag_3:
+          type: string
+        status:
+          type: string
+          description: Ticket Status
+          enum:
+          - pending
+          - resolved
+          - duplicate
+          - cancelled
+        votes:
+          type: integer
+          format: int64
+        created_by:
+          type: string
+        created_on:
+          type: integer
+          format: int64
+        resolved_by:
+          type: string
+        resolved_on:
+          type: integer
+          format: int64
+        solution:
+          type: string
+      xml:
+        name: Ticket
+    TicketAttachment:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        user_id:
+          type: string
+        attachment_loc:
+          type: string
+      xml:
+        name: TicketAttachment
+    TicketVote:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        user_id:
+          type: string
+      xml:
+        name: TicketVote
+    LoginForm:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      xml:
+        name: LoginForm
+    RegisterForm:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        retype_password:
+          type: string
+        role:
+          type: string
+          description: User Role
+          enum:
+          - Modified APIs
+          - Modified APIs
+          - Modified APIs
+      xml:
+        name: RegisterForm
+    ApiResponse:
+      required:
+      - category
+      - message
+      - status
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        category:
+          type: string
+        message:
+          type: string
+    TicketForm:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          description: Ticket Priority
+          enum:
+          - low
+          - medium
+          - high
+        tag_1:
+          type: string
+        tag_2:
+          type: string
+        tag_3:
+          type: string
+        status:
+          type: string
+          description: Ticket Status
+          enum:
+          - pending
+          - resolved
+          - duplicate
+          - cancelled
+        votes:
+          type: integer
+          format: int64
+        created_by:
+          type: string
+        created_on:
+          type: integer
+          format: int64
+        resolved_by:
+          type: string
+        resolved_on:
+          type: integer
+          format: int64
+        solution:
+          type: string
+        attachments:
+          type: array
+          description: Array of attachments
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TicketForm_attachments'
+    TicketUpdateForm:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tag_1:
+          type: string
+        tag_2:
+          type: string
+        tag_3:
+          type: string
+        attachments:
+          type: array
+          description: Array of attachments
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TicketForm_attachments'
+    CreateTicketForm:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          description: Ticket Priority
+          enum:
+          - low
+          - medium
+          - high
+        tag_1:
+          type: string
+        tag_2:
+          type: string
+        tag_3:
+          type: string
+        created_by:
+          type: string
+        created_on:
+          type: integer
+          format: int64
+        discourse_thread:
+          type: boolean
+          # format: bool
+          default: true
+        attachments:
+          type: array
+          description: Array of attachments
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TicketForm_attachments'
+    StudentForm:
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+        n_tickets_created:
+          type: integer
+        n_tickets_resolved:
+          type: integer
+        n_tickets_unresolved:
+          type: integer
+        n_tickets_upvoted:
+          type: integer
+      xml:
+        name: StudentForm
+    SupportForm:
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+        n_tickets_resolved:
+          type: integer
+        n_total_unresolved_tickets:
+          type: integer
+      xml:
+        name: SupportForm
+    AdminForm:
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+        n_total_unresolved_tickets:
+          type: integer
+        n_total_resolved_tickets:
+          type: integer
+        n_tickets_today:
+          type: integer
+        n_tickets_week:
+          type: integer
+        n_tickets_month:
+          type: integer
+        n_student:
+          type: integer
+        n_support:
+          type: integer
+        n_admin:
+          type: integer
+        n_student_new:
+          type: integer
+        n_support_new:
+          type: integer
+      xml:
+        name: AdminForm
+    Student:
+      required:
+      - email
+      - first_name
+      - password
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+      xml:
+        name: Student
+    Support:
+      required:
+      - email
+      - first_name
+      - password
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+      xml:
+        name: Support
+    Admin:
+      required:
+      - email
+      - first_name
+      - password
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        profile_photo_loc:
+          type: string
+      xml:
+        name: Admin
+    inline_response_200:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          $ref: '#/components/schemas/inline_response_200_message'
+    inline_response_200_1:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          type: array
+          description: Array of user objects
+          nullable: true
+          items:
+            $ref: '#/components/schemas/inline_response_200_1_message'
+    newUsers_user_id_body:
+      type: object
+      properties:
+        user_id:
+          type: string
+        verified:
+          type: boolean
+    inline_response_200_2:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          $ref: '#/components/schemas/TicketForm'
+    inline_response_200_3:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketForm'
+    inline_response_200_4:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          $ref: '#/components/schemas/StudentForm'
+    inline_response_200_5:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          $ref: '#/components/schemas/SupportForm'
+    inline_response_200_6:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+        message:
+          $ref: '#/components/schemas/AdminForm'
+    new_response:
+      type: object
+      properties:
+        category:
+          type: string
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+    TicketForm_attachments:
+      type: object
+      properties:
+        user_id:
+          type: string
+        attachment_loc:
+          type: string
+    inline_response_200_message:
+      type: object
+      properties:
+        user_id:
+          type: string
+        web_token:
+          type: string
+        token_expiry_on:
+          type: integer
+    inline_response_200_1_message:
+      type: object
+      properties:
+        user_id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+  responses:
+    Success:
+      description: Operation successfully completed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    BadRequest:
+      description: Client specified an invalid argument.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    Unauthenticated:
+      description: Request not authenticated due to missing/invalid token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    PermissionDenied:
+      description: Client does not have sufficient permission.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    NotFound:
+      description: A specified resource is not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    MethodNotAllowed:
+      description: Request method is known by the server but is not supported by the target resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    AlreadyExists:
+      description: An existing resource conflicts with the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    ServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+  requestBodies:
+    LoginForm:
+      description: LoginForm
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginForm'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/LoginForm'
+      required: true
+    RegisterForm:
+      description: RegisterForm
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RegisterForm'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/RegisterForm'
+      required: true
+    TicketForm:
+      description: TicketForm
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TicketForm'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/TicketForm'
+      required: true
+    TicketUpdateForm:
+      description: TicketUpdateForm
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TicketUpdateForm'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/TicketUpdateForm'
+      required: true
+    CreateTicketForm:
+      description: CreateTicketForm
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateTicketForm'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/CreateTicketForm'
+      required: true

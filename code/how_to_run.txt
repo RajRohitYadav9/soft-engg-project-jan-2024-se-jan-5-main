@@ -1,0 +1,18 @@
+setup discourse.
+get get admin username, and user api with global scope.
+configue the .env file inside backend/application/ directory
+
+run setup_venv.bat to create a virtual py environment 
+install requirements.txt
+go to frontend directory and run npm install to install node modules.
+start 'backend.bat' file
+run local_workers.sh for celery tasks. it requires RabbitMq as broker Url
+run local_beat.sh for periodic celery tasks
+
+then start 'frontend.bat' file
+
+then visit 'http://127.0.0.1:8080/' for app frontend
+
+
+why did we opted for celery tasks?
+- Hosting discourse locally and calling it's APIs sometimes produces connection timeout error or sometimes it can freeze the backend API aswell. To publish new tickets and replies or other queries to Discourse we defined celery tasks for asynchronous functionality.
