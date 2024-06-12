@@ -11,7 +11,7 @@ def google_chatroom_notification(support_name, ticket_id, priority):
     def make_api_request():
         # Make the API request
         message = f"Support - {support_name} channged the priority of ticket with id - {ticket_id} to {priority}\nLogin or go to - http://localhost:8080/ticket/{ticket_id} to solve the issue ASAP!"
-        url = "https://chat.googleapis.com/v1/spaces/AAAAYJfSwPI/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=TdwPamtmsKDY0NanD76qFQo6CUHGsBmtyfVuztP41FE"
+        url = "https://chat.googleapis.com/v1/spaces/AAAAYJfSwPI/messages?key=AIzaI&token=T"
         app_message = {"text": message}
         message_headers = {"Content-Type": "application/json; charset=UTF-8"}
         http_obj = Http()
